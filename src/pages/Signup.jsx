@@ -1,22 +1,34 @@
+import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Signup() {
-  const [form, setForm] = useState({
+  const [user, setUser] = useState({
     username: "",
     email: "",
     password: "",
     role: "User",
   });
+  const navigate = useNavigate();
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Send form to API or store it
-    console.log("Signup form:", form);
+    try {
+      // use the appropriate signup endpoint, change that as needed
+      const response = await axios.post("http://localhost:9898/api/auth/signup", user);
+      toast.success(response.data.message || "Signup successful!");
+      navigate('/login')
+    } catch (error) {
+      console.log(error)
+      toast.error(error.response?.data || "Signup Unsuccessful");
+    }
   };
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen ">
@@ -28,7 +40,7 @@ export default function Signup() {
                     name="username"
                     placeholder="Username"
                     className="w-full p-3 border rounded-md"
-                    value={form.username}
+                    value={user.username}
                     onChange={handleChange}
                     required
                 />
@@ -37,7 +49,7 @@ export default function Signup() {
                     name="email"
                     placeholder="Email"
                     className="w-full p-3 border rounded-md"
-                    value={form.email}
+                    value={user.email}
                     onChange={handleChange}
                     required
                 />
@@ -46,14 +58,14 @@ export default function Signup() {
                     name="password"
                     placeholder="Password"
                     className="w-full p-3 border rounded-md"
-                    value={form.password}
+                    value={user.password}
                     onChange={handleChange}
                     required
                 />
                 <select
                     name="role"
                     className="w-full p-3 border rounded-md"
-                    value={form.role}
+                    value={user.role}
                     onChange={handleChange}
                     >
                     <option value="Admin">Admin</option>

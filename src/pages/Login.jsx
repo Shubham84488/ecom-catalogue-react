@@ -1,21 +1,34 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [form, setForm] = useState({
-    email: "",
+    username: "",
     password: "",
-    role:""
+    role:"User"
   });
+  const navigate = useNavigate()
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Send login credentials to API or validate
-    console.log("Login form:", form);
+    try {
+      console.log(form)
+      const response = await axios.post("http://localhost:9898/api/auth/login", form);
+      localStorage.setItem("jwt", response.data.token);
+      toast.success(response.data?.message || "Login successful!");
+      navigate('/')
+
+    } catch (error) {
+      toast.error(error.response?.data|| "Login Unsuccessful");
+    }
   };
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen ">
@@ -23,11 +36,11 @@ export default function Login() {
             <h2 className="text-2xl font-bold text-center mb-6 text-primary">Login</h2>
             <form className="space-y-5" onSubmit={handleSubmit}>
                 <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
+                    type="text"
+                    name="username"
+                    placeholder="Username"
                     className="w-full p-3 border rounded-md"
-                    value={form.email}
+                    value={form.username}
                     onChange={handleChange}
                     required
                 />
@@ -46,8 +59,8 @@ export default function Login() {
                     value={form.role}
                     onChange={handleChange}
                     >
-                    <option value="Admin">Admin</option>
                     <option value="User">User</option>
+                    <option value="Admin">Admin</option>
                 </select>
                 <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Login</button>
             </form>

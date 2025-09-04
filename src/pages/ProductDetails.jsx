@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios, { AxiosHeaders } from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCart } from "../components/CartContext";
 import { toast } from "react-toastify";
 
 /**
@@ -20,7 +19,25 @@ export default function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { addToCart } = useCart();
+
+  const addToCart = async (productId, quantity) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `http://localhost:9898/api/cart/add?productId=${productId}&quantity=${quantity}`,{},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("jwt")}`
+          }
+        }
+      );
+      toast.success("Product added to cart");
+    } catch (error) {
+      console.log(error);
+      toast.error("Unable to add to cart");
+    }
+  };
+  
 
   useEffect(() => {
     let isMounted = true;
@@ -127,7 +144,7 @@ export default function ProductDetails() {
                 <button
                     type="button"
                     className="px-5 py-2 rounded-2xl bg-green-600 text-white hover:bg-green-700"
-                    onClick={() => {addToCart(product) ; toast.success("Item added to cart")}}
+                    onClick={() => {addToCart(product?.id,1) ; toast.success("Item added to cart")}}
                 >
                     Add to Cart
                 </button>

@@ -1,10 +1,64 @@
-import React from "react";
-import { useCart } from "../components/CartContext";
+import React, { useEffect,useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const CartPage = () => {
-  const { cart, removeFromCart, clearCart } = useCart();
+  const [cart, setCart] = useState(null); // store full cart
+  const [cartItems, setCartItems] = useState([]); // store items only
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
+  const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const token = localStorage.getItem("jwt");
+        const response = await axios.get("http://localhost:9898/api/cart", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        console.log("Cart response:", response.data);
+
+        // store in state
+        setCart(response.data);
+        setCartItems(response.data.items || []);
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+      }
+    };
+
+    fetchCart();
+  }, []);
+
+  const removeFromCart = async (itemId) => {
+    try {
+      const token = localStorage.getItem("jwt");
+      const response = await axios.delete(
+        `http://localhost:9898/api/cart/remove/${itemId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setCart(response.data);
+      setCartItems(response.data.items || []);
+    } catch (err) {
+      console.error("Error removing item:", err);
+    }
+  };
+
+  const clearCart = async () => {
+    try {
+      const token = localStorage.getItem("jwt");
+      const response = await axios.delete("http://localhost:9898/api/cart/clear", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCart(response.data);
+      setCartItems([]);
+    } catch (err) {
+      console.error("Error clearing cart:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
@@ -13,19 +67,23 @@ const CartPage = () => {
           🛒 Your Cart
         </h2>
 
-        {cart.length === 0 ? (
+        {cartItems.length === 0 ? (
           <p className="text-gray-600 text-lg">No items in cart.</p>
         ) : (
           <>
             <ul className="space-y-4">
-              {cart.map((item,index) => (
+              {cartItems.map((item, index) => (
                 <li
                   key={`${item.id}-${index}`}
                   className="flex items-center justify-between bg-gray-100 rounded-xl p-4 shadow-sm"
                 >
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-800">{item.name}</h4>
-                    <p className="text-gray-600">₹{item.price}</p>
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      {item.product.name}
+                    </h4>
+                    <p className="text-gray-600">
+                      ₹{item.product.price} × {item.quantity}
+                    </p>
                   </div>
                   <button
                     onClick={() => removeFromCart(item.id)}
@@ -39,7 +97,7 @@ const CartPage = () => {
 
             <div className="mt-6 border-t pt-4">
               <h3 className="text-xl font-bold text-gray-800">
-                Total: ₹{totalPrice}
+                Total: ₹{cart?.totalPrice}
               </h3>
             </div>
 
@@ -62,6 +120,7 @@ const CartPage = () => {
       </div>
     </div>
   );
-};
+}
+
 
 export default CartPage;

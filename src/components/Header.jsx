@@ -1,9 +1,17 @@
-import { Search, ShoppingCart, Menu } from "lucide-react"
-import { useState } from "react"
-import { Link } from "react-router-dom";
+import { Search, ShoppingCart, Menu, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export function Header() {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(()=>{
+    const token = localStorage.getItem('jwt')
+    if(token == null){
+      navigate('/login')
+    }
+  },[])
 
   return (
     <header className="sticky top-2 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-16">
@@ -27,7 +35,7 @@ export function Header() {
           </nav>
 
           {/* Search Bar - Hidden on mobile */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8  p-2">
+          <div className="hidden md:flex flex-1 max-w-md mx-8  p-2 ">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <input
@@ -35,15 +43,19 @@ export function Header() {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring w-[420px] rounded-md p-2"
+                className="pl-10 bg-input border-border border-2 focus:ring-2 focus:ring-ring focus:rounded-xl w-[420px] rounded-lg p-2"
               />
             </div>
           </div>
 
-          {/* Cart and Mobile Menu */}
-          <div className="flex items-center space-x-4">
+          {/* Cart, Profile, and Mobile Menu */}
+          <div className="flex items-center space-x-10">
             <Link to="/cart">
-              <button variant="ghost" size="icon" className="relative">
+              <button
+                variant="ghost"
+                size="icon"
+                className="relative cursor-pointer"
+              >
                 <ShoppingCart className="h-5 w-5" />
                 <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   0
@@ -51,8 +63,18 @@ export function Header() {
               </button>
             </Link>
 
+            <Link to="/profile">
+              <button
+                variant="ghost"
+                size="icon"
+                className="relative cursor-pointer"
+              >
+                <User className="h-5 w-5" />
+              </button>
+            </Link>
+
             {/* Mobile menu button */}
-            <button variant="ghost" size="icon" className="md:hidden">
+            <button variant="ghost" size="icon" className="md:hidden cursor-pointer hover:bg-accent transition">
               <Menu className="h-5 w-5" />
             </button>
           </div>
@@ -73,5 +95,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }
